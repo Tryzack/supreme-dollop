@@ -394,7 +394,7 @@ int main (){
             }
         }
 
-        //CREACION DE LA NAVE
+        //MUERTE Y MOVIMIENTO DE LA NAVE
         n.muerte();
         n.mover();
 
