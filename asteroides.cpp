@@ -1,5 +1,4 @@
-//COMENTARIO GENERAL: la funcion de tiro tiene problemas actualmente, es recomendable no utilizar
-//Se reparo el problema de que no podia ir de izquierda a derecha, las balas al tocar el infinito empiezan a llover de manera aleatoria
+//NOTA CAMBIAR TAMAÑO DEL CMD PARA PODER VERLO COMPLETO
 
 #include<stdio.h>
 #include<windows.h>
@@ -143,7 +142,38 @@ int nave::preguntar_vida(){
 }
 //FUNCION PARA DISMINUIR VIDA
 void nave::disminuir_vida(){
-vida--;
+    vida--;
+}
+
+
+//CLASE DE TIROS O BALAS
+class tiro{
+    int x, y;
+public:
+    //CONSTRUCTOR DE LOS TIROS
+    tiro(int _x, int _y): x(_x), y(_y){}
+    void mover();
+    bool fuera();
+    int X(){return x;}
+    int Y(){return y;}
+    int colisionstatus();
+    void cambiarcs();
+
+};
+
+bool tiro::fuera(){
+    if(y==4){
+        return true;
+    }
+    return false;
+}
+//FUNCION PARA MOVER LOS TIROS
+void tiro::mover(){
+
+            gotoxy(x,y); printf(" ");
+            y--;
+            gotoxy(x,y); printf("*");
+
 }
 
 //CLASE DE LOS ASTEROIDES
@@ -155,6 +185,9 @@ public:
     void pintar();
     void mover();
     void colision(nave &n);
+    void colision2(tiro &t);
+    int X(){return x;}
+    int Y(){return y;}
 
 };
 //FUNCION PARA DIBUJAR EL ASTEROIDE
@@ -166,8 +199,10 @@ void asteroide::mover(){
     gotoxy(x,y); printf(" ");
     y++;
     if(y>32){
+
         x = rand()%71+4;
         y=4;
+
     }
     pintar();
 }
@@ -176,91 +211,105 @@ void asteroide::colision(nave &n){
 
     if(x >= n.X() && x <= n.X()+5 && y>=n.Y() && y<=n.Y()+2){
 
-    n.disminuir_vida();
-    n.borrar();
-    n.pintar();
-    n.pintar_vida();
-    x = rand()%71+4;
-    y=4;
+        n.disminuir_vida();
+        n.borrar();
+        n.pintar();
+        n.pintar_vida();
+        x = rand()%71+4;
+        y=4;
 
     }
-
 }
 
-//CLASE DE TIROS O BALAS
-class tiro{
-    int x, y;
-public:
-    //CONSTRUCTOR DE LOS ASTEROIDES
-    tiro(int _x, int _y): x(_x), y(_y){}
-    void mover();
-    bool fuera() {if(y==4) return true; return false;}
-    int X(){return x;}
-    int Y(){return y;}
-};
-//FUNCION PARA MOVER LOS TIROS
-void tiro::mover(){
-    gotoxy(x,y); printf(" ");
-    y--;
-    gotoxy(x,y); printf("*");
+void derrota(){
+    
 }
-
 
 //MAIN
 int main (){
 
-    //DIBUJAR LIMITES DEL MAPA, NAVE Y CREACION DE ASTEROIDES
+    //DIBUJAR LIMITES DEL MAPA Y NAVE
     pintarlimites();
     nave n(38,25, 3, 3);
     n.pintar();
     n.pintar_vida();
-    asteroide a1(10, 4), a2(10, 8), a3(10, 12), a4(10, 16), a5(10, 20), a6(10, 24);
     bool fin = false;
+    int puntuacion=0;
+    bool menu=false;
 
-    //CREACION DE LAS LISTAS DINAMICAS PARA LOS TIROS
+    //LISTA ASTEROIDES
+    list<asteroide*> ast;
+    list<asteroide*>::iterator ita;
+    for(int i=0; i<5; i++){
+        ast.push_back(new asteroide(rand() %74+3 , rand() %5+4 ));
+    }
+
+    //LISTA TIROS
     list<tiro*> b;
     list<tiro*>::iterator it;
-
     
+
+    //INICIO JUEGO
     while(!fin){
 
-        //CREACION DE LOS TIROS (falta crear una funcion para esto)
+        //CREACION DE LOS TIROS Y MOVIMIENTO DE
         if(kbhit()){
+
             char tecla = getch();
             if (tecla == 'a')
             b.push_back(new tiro(n.X()+2, n.Y()-1));
+
         }
 
         for(it = b.begin(); it != b.end(); it++){
 
-
             (*it) -> mover();
-
-            //ERROR EN EL SIGUIENTE CODIGO COMENTADO
-
-            /*if((*it) -> fuera){
+            if((*it)->fuera()){
                 gotoxy((*it)->X(),(*it)->Y()); printf(" ");
                 delete(*it);
                 it = b.erase(it);
 
-            }*/
+            }
        }
 
         ocultarcursor();
-        //CREACION DE LOS ATEROIDES EXISTENTES
-        a1.mover(); a1.colision(n);
-        a2.mover(); a2.colision(n);
-        a3.mover(); a3.colision(n);
-        a4.mover(); a4.colision(n);
-        a5.mover(); a5.colision(n);
-        a6.mover(); a6.colision(n);
+        //CREACION DE LOS ATEROIDES
+        for(ita = ast.begin(); ita != ast.end(); ita++){
+            (*ita)->mover();
+            (*ita)->colision(n);
+        }
+
+        //COLISION DE ASTEROIDES Y TIROS
+
+        for(ita = ast.begin(); ita != ast.end(); ita++){
+            for(it=b.begin(); it !=b.end(); it++){
+                if((*ita)->X()==(*it)->X() && ((*ita)->Y() +1 == (*it)-> Y() || (*ita)->Y() == (*it)-> Y() )){
+
+                    gotoxy((*it)->X(), (*it)->Y()); printf(" ");
+                    delete(*it);
+                    it = b.erase(it);
+
+                    ast.push_back(new asteroide(rand()%74+3 , 4));
+                    gotoxy((*ita)->X(), (*ita)->Y()); printf(" ");
+                    delete(*ita);
+                    ita = ast.erase(ita);
+
+                    puntuacion+=100;
+
+                }
+            }
+        }
+
         //CREACION DE LA NAVE
         n.muerte();
         n.mover();
 
+        //VELOCIDAD DEL JUEGO EN MILISEGUNDOS
+
         Sleep(30);
+
         if(n.preguntar_vida()==0){
-            Sleep(3000);
+            Sleep(1500);
             n.borrar();
             gotoxy(35, 13); printf("             ");
             gotoxy(35, 14); printf("             ");
@@ -268,10 +317,13 @@ int main (){
             gotoxy(35, 15); printf("GAME OVER");
             gotoxy(35, 16); printf("             ");
             gotoxy(35, 17); printf("             ");
-            Sleep(5000);
+            Sleep(2500);
             fin=true;
         }
+
+        gotoxy(4,2); printf("PUNTUACION: %d", puntuacion);
     }
+    
 
     return 0;
 }
