@@ -227,22 +227,115 @@ void derrota(){
     
 }
 
+//CAMBIAR DIFICULTAD
+int cambiardificultad(int dificultad){
+    if(dificultad==3) {
+        dificultad=1;
+    } else if(dificultad==1 || dificultad==2) dificultad++;
+    return dificultad;
+}
+
 //MAIN
 int main (){
-
-    //DIBUJAR LIMITES DEL MAPA Y NAVE
+    
+    ocultarcursor();
+    //DIBUJAR LIMITES DEL MAPA
     pintarlimites();
     nave n(38,25, 3, 3);
+    bool fin = false;
+    int puntuacion=0, sel=15, nast=5, speed=30;
+    bool menu=true;
+    int dificultad=2; //la dificultad afecta la cantidad de asteroides y la velocidad del juego
+    char dificultad1[8] = "NORMAL ";
+    while(menu==true){
+        gotoxy(35,15); printf("INICIO");
+        gotoxy(35,16); printf("DIFICULTAD: %s        ", dificultad1);
+        gotoxy(35,17); printf("SALIR");
+        gotoxy(30,sel); printf(">>>");
+        char tecla = getch();
+            if (tecla == ARRIBA && sel>15) {
+                gotoxy(30,sel); printf("   ");
+                sel=sel-1;
+            }
+            if (tecla == ABAJO && sel<17) {
+                gotoxy(30,sel); printf("   ");
+                sel=sel+1;
+            }
+            if (tecla=='a' && sel==15) menu=false;
+            if (tecla=='a' && sel==16) {
+                dificultad = cambiardificultad(dificultad);
+                switch(dificultad)  {
+                    case 1:
+                        dificultad1[0] = 'F';
+                        dificultad1[1] = 'A';
+                        dificultad1[2] = 'C';
+                        dificultad1[3] = 'I';
+                        dificultad1[4] = 'L';
+                        dificultad1[5] = ' ';
+                        dificultad1[6] = ' ';
+                        dificultad1[7] = ' ';
+                        dificultad1[8] = ' ';
+                        nast=4;
+                        speed=40;
+                        break;
+                    case 2:
+                        dificultad1[0] = 'N';
+                        dificultad1[1] = 'O';
+                        dificultad1[2] = 'R';
+                        dificultad1[3] = 'M';
+                        dificultad1[4] = 'A';
+                        dificultad1[5] = 'L';
+                        dificultad1[6] = ' ';
+                        dificultad1[7] = ' ';
+                        dificultad1[8] = ' ';
+                        nast=5;
+                        speed=30;
+                        break;
+                    case 3:
+                        dificultad1[0] = 'D';
+                        dificultad1[1] = 'I';
+                        dificultad1[2] = 'F';
+                        dificultad1[3] = 'I';
+                        dificultad1[4] = 'C';
+                        dificultad1[5] = 'I';
+                        dificultad1[6] = 'L';
+                        dificultad1[7] = ' ';
+                        dificultad1[8] = ' ';
+                        nast=7;
+                        speed=15;
+                        break;
+                    default:
+                        dificultad1[0] = 'N';
+                        dificultad1[1] = 'O';
+                        dificultad1[2] = 'R';
+                        dificultad1[3] = 'M';
+                        dificultad1[4] = 'A';
+                        dificultad1[5] = 'L';
+                        dificultad1[6] = ' ';
+                        dificultad1[7] = ' ';
+                        dificultad1[8] = ' ';
+                        nast=5;
+                        speed=30;
+                        break;
+
+                }
+            }
+            if (tecla=='a' && sel==17) return 0;
+    }
+
+    gotoxy(35,15); printf("                       ");
+    gotoxy(35,16); printf("                       ");
+    gotoxy(35,17); printf("                       ");
+    gotoxy(30,sel); printf("                       ");
+
+    //DIBUJAR NAVE
     n.pintar();
     n.pintar_vida();
-    bool fin = false;
-    int puntuacion=0;
-    bool menu=false;
 
     //LISTA ASTEROIDES
     list<asteroide*> ast;
     list<asteroide*>::iterator ita;
-    for(int i=0; i<5; i++){
+    for(int i=0; i<nast; i++){
         ast.push_back(new asteroide(rand() %74+3 , rand() %5+4 ));
     }
 
@@ -250,11 +343,10 @@ int main (){
     list<tiro*> b;
     list<tiro*>::iterator it;
     
-
     //INICIO JUEGO
     while(!fin){
 
-        //CREACION DE LOS TIROS Y MOVIMIENTO DE
+        //CREACION DE LOS TIROS
         if(kbhit()){
 
             char tecla = getch();
@@ -307,8 +399,7 @@ int main (){
         n.mover();
 
         //VELOCIDAD DEL JUEGO EN MILISEGUNDOS
-
-        Sleep(30);
+        Sleep(speed);
 
         if(n.preguntar_vida()==0){
             Sleep(1500);
@@ -319,6 +410,8 @@ int main (){
             gotoxy(35, 15); printf("GAME OVER");
             gotoxy(35, 16); printf("             ");
             gotoxy(35, 17); printf("             ");
+            Sleep(2500);
+            gotoxy(35, 17); printf("PUNTUACION: %d", puntuacion);
             Sleep(2500);
             fin=true;
         }
